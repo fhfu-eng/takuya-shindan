@@ -135,18 +135,19 @@ body::before {
   border-radius: 50%;
   border: 3px solid var(--ink);
   display: flex; align-items: center; justify-content: center;
-  font-size: 30px;
   box-shadow: var(--card-shadow);
   margin: 0 -5px;
   transition: transform 0.2s;
   background: var(--white);
   position: relative;
+  overflow: hidden;
 }
-.char-bubble:nth-child(1) { background:#fff0f4; transform:rotate(-5deg) translateY(8px); }
-.char-bubble:nth-child(2) { background:#f0f7ff; transform:rotate(3deg) translateY(-4px); z-index:1; width:88px; height:88px; font-size:36px; }
-.char-bubble:nth-child(3) { background:#fffdf0; transform:rotate(-3deg) translateY(5px); }
-.char-bubble:nth-child(4) { background:#f0fff8; transform:rotate(6deg) translateY(12px); }
-.char-bubble:nth-child(5) { background:#f8f0ff; transform:rotate(-4deg) translateY(6px); }
+.char-bubble img { width:100%; height:100%; object-fit:cover; border-radius:50%; }
+.char-bubble:nth-child(1) { transform:rotate(-5deg) translateY(8px); }
+.char-bubble:nth-child(2) { transform:rotate(3deg) translateY(-4px); z-index:1; width:88px; height:88px; }
+.char-bubble:nth-child(3) { transform:rotate(-3deg) translateY(5px); }
+.char-bubble:nth-child(4) { transform:rotate(6deg) translateY(12px); }
+.char-bubble:nth-child(5) { transform:rotate(-4deg) translateY(6px); }
 .char-bubble:hover { transform:rotate(0deg) translateY(-8px) scale(1.1) !important; z-index:10; }
 
 .intro-card {
@@ -542,7 +543,7 @@ body::before {
 .type-card:hover { transform:translate(-2px,-2px); box-shadow:5px 5px 0 var(--ink); }
 
 .tc-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
-.tc-icon { font-size:26px; }
+.tc-img { width:46px; height:46px; object-fit:cover; border-radius:50%; border:2px solid var(--ink); flex-shrink:0; }
 .tc-rarity { font-size:10px; color:var(--yellow); letter-spacing:1px; }
 .tc-name { font-size:13px; font-weight:900; line-height:1.3; margin-bottom:5px; }
 .tc-phrase { font-family:'Kiwi Maru',serif; font-size:11px; color:var(--ink2); border-top:1px solid rgba(26,26,46,.08); padding-top:6px; }
@@ -595,11 +596,11 @@ body::before {
     <p class="title-sub">あなたの中のタクヤを暴く</p>
 
     <div class="char-showcase">
-      <div class="char-bubble">😤</div>
-      <div class="char-bubble">🌙</div>
-      <div class="char-bubble">🔍</div>
-      <div class="char-bubble">🐹</div>
-      <div class="char-bubble">👁️</div>
+      <div class="char-bubble"><img src="images/wakaranai.jpg" alt="わかんないタクヤ"></div>
+      <div class="char-bubble"><img src="images/jyurei.jpg" alt="呪霊タクヤ"></div>
+      <div class="char-bubble"><img src="images/hamchan.jpg" alt="ハムちゃんずタクヤ"></div>
+      <div class="char-bubble"><img src="images/atfield.png" alt="ATフィールド解除タクヤ"></div>
+      <div class="char-bubble"><img src="images/poemer.jpg" alt="ポエマータクヤ"></div>
     </div>
 
     <div class="intro-card">
@@ -980,7 +981,7 @@ function showAllTypes() {
   document.getElementById('all-grid').innerHTML = Object.entries(TYPES).map(([,t]) => `
     <div class="type-card">
       <div class="tc-top">
-        <span class="tc-icon">${t.icon}</span>
+        <img class="tc-img" src="images/${t.img}" alt="${t.name}">
         <span class="tc-rarity">${'★'.repeat(t.rarity)}${'☆'.repeat(5-t.rarity)}</span>
       </div>
       <div class="tc-name">${t.name}</div>
