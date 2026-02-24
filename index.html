@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>タクタイプ診断</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&family=Dela+Gothic+One&family=Kiwi+Maru:wght@500&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --bg: #fff8f0;
+  --white: #ffffff;
+  --ink: #1a1a2e;
+  --ink2: #555570;
+  --red: #ff3f5b;
+  --orange: #ff7b2e;
+  --yellow: #ffd000;
+  --green: #00c896;
+  --blue: #3a7bff;
+  --purple: #9b5de5;
+  --pink: #ff5fa0;
+  --card-shadow: 4px 4px 0px #1a1a2e;
+  --card-shadow-lg: 6px 6px 0px #1a1a2e;
+  --radius: 18px;
+  --radius-sm: 12px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  font-family: 'Noto Sans JP', sans-serif;
+  min-height: 100vh;
+  color: var(--ink);
+  overflow-x: hidden;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: radial-gradient(circle, rgba(26,26,46,0.07) 1.5px, transparent 1.5px);
+  background-size: 28px 28px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+#app {
+  position: relative;
+  z-index: 1;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 24px 20px 80px;
+}
+
+.screen { display: none; }
+.screen.active {
+  display: block;
+  animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes popIn {
+  from { opacity: 0; transform: scale(0.94) translateY(12px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.blob {
+  position: fixed;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+  filter: blur(60px);
+  opacity: 0.35;
+}
+.blob-1 { width: 300px; height: 300px; background: #ff5fa0; top: -80px; right: -80px; animation: bm1 10s ease-in-out infinite; }
+.blob-2 { width: 250px; height: 250px; background: #ffd000; bottom: 100px; left: -80px; animation: bm2 13s ease-in-out infinite; }
+.blob-3 { width: 200px; height: 200px; background: #3a7bff; top: 40%; right: -60px; animation: bm3 9s ease-in-out infinite; }
+
+@keyframes bm1 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(-20px,30px)} }
+@keyframes bm2 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(30px,-20px)} }
+@keyframes bm3 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(-10px,40px)} }
+
+/* ===== TOP ===== */
+#screen-top { text-align: center; padding-top: 48px; }
+
+.top-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--yellow);
+  border: 2px solid var(--ink);
+  border-radius: 50px;
+  padding: 7px 18px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  margin-bottom: 28px;
+  box-shadow: 3px 3px 0 var(--ink);
+  animation: wiggle 3s ease-in-out infinite;
+}
+
+@keyframes wiggle {
+  0%,100%{transform:rotate(-1deg)} 50%{transform:rotate(1deg)}
+}
+
+.main-title {
+  font-family: 'Dela Gothic One', cursive;
+  font-size: clamp(52px, 14vw, 82px);
+  line-height: 0.95;
+  letter-spacing: -2px;
+  margin-bottom: 6px;
+  color: var(--ink);
+}
+.main-title .line1 { color: var(--red); display: block; }
+.main-title .line2 { color: var(--ink); display: block; font-size: 0.62em; letter-spacing: 4px; }
+
+.title-sub {
+  font-size: 14px;
+  color: var(--ink2);
+  letter-spacing: 3px;
+  margin-bottom: 36px;
+}
+
+.char-showcase {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  margin-bottom: 32px;
+  height: 100px;
+}
+
+.char-bubble {
+  width: 72px; height: 72px;
+  border-radius: 50%;
+  border: 3px solid var(--ink);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 30px;
+  box-shadow: var(--card-shadow);
+  margin: 0 -5px;
+  transition: transform 0.2s;
+  background: var(--white);
+  position: relative;
+}
+.char-bubble:nth-child(1) { background:#fff0f4; transform:rotate(-5deg) translateY(8px); }
+.char-bubble:nth-child(2) { background:#f0f7ff; transform:rotate(3deg) translateY(-4px); z-index:1; width:88px; height:88px; font-size:36px; }
+.char-bubble:nth-child(3) { background:#fffdf0; transform:rotate(-3deg) translateY(5px); }
+.char-bubble:nth-child(4) { background:#f0fff8; transform:rotate(6deg) translateY(12px); }
+.char-bubble:nth-child(5) { background:#f8f0ff; transform:rotate(-4deg) translateY(6px); }
+.char-bubble:hover { transform:rotate(0deg) translateY(-8px) scale(1.1) !important; z-index:10; }
+
+.intro-card {
+  background: var(--white);
+  border: 2px solid var(--ink);
+  border-radius: var(--radius);
+  padding: 20px 22px;
+  margin-bottom: 28px;
+  box-shadow: var(--card-shadow);
+  text-align: left;
+}
+.intro-card p { font-size: 14px; line-height: 1.9; color: var(--ink2); }
+.intro-card strong { color: var(--red); font-weight: 900; }
+
+.btn-start {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--red);
+  color: white;
+  font-family: 'Dela Gothic One', cursive;
+  font-size: 20px;
+  letter-spacing: 4px;
+  padding: 18px 48px;
+  border: 2px solid var(--ink);
+  border-radius: 50px;
+  cursor: pointer;
+  box-shadow: var(--card-shadow-lg);
+  transition: all 0.15s ease;
+  position: relative;
+  overflow: hidden;
+}
+.btn-start::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(255,255,255,0.15);
+  transform: translateX(-100%);
+  transition: transform 0.3s ease;
+}
+.btn-start:hover { transform: translate(-3px,-3px); box-shadow: 9px 9px 0 var(--ink); }
+.btn-start:hover::before { transform: translateX(0); }
+.btn-start:active { transform: translate(0,0); box-shadow: 2px 2px 0 var(--ink); }
+
+.type-count-row {
+  margin-top: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: 12px;
+  color: var(--ink2);
+  letter-spacing: 1px;
+  flex-wrap: wrap;
+}
+.type-count-row span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--white);
+  border: 1.5px solid rgba(26,26,46,0.15);
+  border-radius: 20px;
+  padding: 5px 13px;
+  font-weight: 700;
+}
+
+/* ===== QUIZ ===== */
+#screen-quiz { padding-top: 8px; }
+
+.quiz-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 28px;
+}
+
+.q-num-badge {
+  flex-shrink: 0;
+  background: var(--ink);
+  color: var(--yellow);
+  font-family: 'Dela Gothic One', cursive;
+  font-size: 13px;
+  padding: 7px 16px;
+  border-radius: 50px;
+  letter-spacing: 1px;
+  white-space: nowrap;
+}
+
+.progress-track {
+  flex: 1;
+  height: 10px;
+  background: rgba(26,26,46,0.1);
+  border-radius: 5px;
+  border: 1.5px solid rgba(26,26,46,0.15);
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--red), var(--orange));
+  border-radius: 5px;
+  transition: width 0.5s cubic-bezier(0.4,0,0.2,1);
+}
+
+.q-card {
+  background: var(--ink);
+  border-radius: var(--radius);
+  padding: 28px 24px;
+  margin-bottom: 18px;
+  position: relative;
+  overflow: hidden;
+}
+.q-card::before {
+  content: '';
+  position: absolute;
+  top: -30px; right: -30px;
+  width: 120px; height: 120px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.04);
+}
+.q-num-label {
+  font-family: 'Dela Gothic One', cursive;
+  font-size: 11px;
+  color: rgba(255,255,255,0.3);
+  letter-spacing: 3px;
+  margin-bottom: 10px;
+}
+.q-text-main {
+  font-size: clamp(18px,4.5vw,22px);
+  font-weight: 900;
+  color: white;
+  line-height: 1.55;
+  margin-bottom: 10px;
+}
+.q-scenario {
+  font-size: 12px;
+  color: rgba(255,255,255,0.4);
+  line-height: 1.6;
+  border-top: 1px solid rgba(255,255,255,0.1);
+  padding-top: 10px;
+}
+
+.options-list { display: flex; flex-direction: column; gap: 10px; }
+
+.option-btn {
+  width: 100%;
+  background: var(--white);
+  border: 2px solid var(--ink);
+  border-radius: var(--radius-sm);
+  padding: 15px 18px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: var(--card-shadow);
+  display: flex;
+  align-items: flex-start;
+  gap: 13px;
+  text-align: left;
+  font-family: 'Noto Sans JP', sans-serif;
+  position: relative;
+  overflow: hidden;
+}
+.option-btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--yellow);
+  opacity: 0;
+  transition: opacity 0.15s;
+  z-index: 0;
+}
+.option-btn:hover { transform: translate(-3px,-3px); box-shadow: 5px 5px 0 var(--ink); }
+.option-btn:hover::after { opacity: 0.12; }
+.option-btn:active { transform: translate(1px,1px); box-shadow: 1px 1px 0 var(--ink); }
+.option-btn.selected { background: var(--yellow); transform: translate(-3px,-3px); box-shadow: 5px 5px 0 var(--ink); }
+
+/* E option special */
+.option-btn.opt-e {
+  background: #fafafa;
+  border-style: dashed;
+  border-color: rgba(26,26,46,0.3);
+}
+.option-btn.opt-e:hover, .option-btn.opt-e.selected {
+  background: #fff0f7;
+  border-color: var(--pink);
+  border-style: solid;
+  box-shadow: 5px 5px 0 var(--pink);
+}
+.option-btn.opt-e:hover::after { background: var(--pink); opacity: 0.06; }
+
+.opt-tag {
+  position: relative; z-index: 1;
+  flex-shrink: 0;
+  width: 30px; height: 30px;
+  background: var(--ink);
+  color: white;
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Dela Gothic One', cursive;
+  font-size: 13px;
+  transition: background 0.15s;
+}
+.option-btn.opt-e .opt-tag { background: var(--pink); }
+.option-btn.selected .opt-tag { background: var(--red); }
+
+.opt-text {
+  position: relative; z-index: 1;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.5;
+  color: var(--ink);
+  padding-top: 4px;
+}
+.option-btn.opt-e .opt-text { color: var(--ink2); font-style: italic; }
+
+/* ===== LOADING ===== */
+#screen-loading { text-align: center; padding: 80px 20px; }
+
+.dot-row { display:flex; justify-content:center; gap:8px; margin-bottom:36px; }
+.ldot {
+  width: 16px; height: 16px; border-radius: 50%;
+  animation: ldotBounce 1.2s ease-in-out infinite;
+}
+.ldot:nth-child(1){background:var(--red);animation-delay:0s}
+.ldot:nth-child(2){background:var(--orange);animation-delay:.1s}
+.ldot:nth-child(3){background:var(--yellow);animation-delay:.2s}
+.ldot:nth-child(4){background:var(--green);animation-delay:.3s}
+.ldot:nth-child(5){background:var(--blue);animation-delay:.4s}
+.ldot:nth-child(6){background:var(--purple);animation-delay:.5s}
+.ldot:nth-child(7){background:var(--pink);animation-delay:.6s}
+
+@keyframes ldotBounce {
+  0%,100%{transform:translateY(0) scale(1)}
+  50%{transform:translateY(-20px) scale(1.2)}
+}
+
+.load-msg { font-family:'Dela Gothic One',cursive; font-size:18px; letter-spacing:3px; color:var(--ink2); }
+.load-sub { margin-top:10px; font-size:13px; color:rgba(26,26,46,.35); letter-spacing:2px; }
+
+/* ===== RESULT ===== */
+#screen-result { padding-top: 8px; }
+
+.result-eyebrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 20px;
+  font-family: 'Dela Gothic One', cursive;
+  font-size: 11px;
+  letter-spacing: 4px;
+  color: var(--ink2);
+}
+.result-eyebrow::before,.result-eyebrow::after {
+  content:''; flex:1; height:1.5px; background:rgba(26,26,46,.15);
+}
+
+.result-main-card {
+  background: var(--white);
+  border: 3px solid var(--ink);
+  border-radius: 24px;
+  box-shadow: var(--card-shadow-lg);
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+
+.result-card-header {
+  background: var(--ink);
+  padding: 28px 24px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.result-card-header::before {
+  content:''; position:absolute; top:-50px; right:-50px;
+  width:200px; height:200px; border-radius:50%; background:rgba(255,255,255,.04);
+}
+
+.result-img {
+  width: 160px; height: 160px;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 4px solid rgba(255,255,255,0.25);
+  margin: 0 auto 14px;
+  display: block;
+  animation: rBounce 1.5s cubic-bezier(0.34,1.56,0.64,1) forwards;
+  transform: scale(0);
+  box-shadow: 0 0 0 6px rgba(255,255,255,0.07);
+}
+@keyframes rBounce { to { transform: scale(1); } }
+
+.rarity-row { display:flex; align-items:center; justify-content:center; gap:6px; margin-bottom:12px; }
+.rarity-pill {
+  background: rgba(255,255,255,.1);
+  border: 1px solid rgba(255,255,255,.2);
+  border-radius: 20px; padding: 4px 12px;
+  font-size: 10px; color: rgba(255,255,255,.5); letter-spacing: 2px;
+}
+.rarity-stars { font-size:16px; letter-spacing:2px; }
+.rarity-stars .s1 { color:var(--yellow); text-shadow:0 0 8px var(--yellow); }
+.rarity-stars .s0 { color:rgba(255,255,255,.15); }
+
+.result-intensity {
+  font-family: 'Dela Gothic One', cursive;
+  font-size: 13px; letter-spacing: 2px;
+  color: rgba(255,255,255,.5); margin-bottom: 6px;
+}
+.result-name-big {
+  font-family: 'Dela Gothic One', cursive;
+  font-size: clamp(24px,7vw,34px);
+  color: white; line-height: 1.2; letter-spacing: 1px;
+}
+
+.phrase-row {
+  padding: 18px 22px;
+  background: var(--yellow);
+  border-bottom: 2px solid var(--ink);
+  display: flex; align-items: center; gap: 10px;
+}
+.phrase-lbl { font-size:10px; font-weight:700; letter-spacing:3px; color:rgba(26,26,46,.5); white-space:nowrap; }
+.phrase-txt { font-family:'Kiwi Maru',serif; font-size:17px; font-weight:500; color:var(--ink); }
+
+.desc-wrap { padding: 22px 22px; }
+.desc-title { font-size:10px; font-weight:700; letter-spacing:3px; color:var(--ink2); margin-bottom:10px; }
+.desc-text { font-size:14px; line-height:1.95; color:var(--ink2); }
+
+.score-wrap { padding: 0 22px 22px; }
+.score-row { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+.score-title { font-size:10px; font-weight:700; letter-spacing:3px; color:var(--ink2); }
+.score-pct { font-family:'Dela Gothic One',cursive; font-size:20px; color:var(--red); }
+.score-track {
+  height:12px;
+  background:rgba(26,26,46,.08);
+  border:1.5px solid rgba(26,26,46,.15);
+  border-radius:6px; overflow:hidden;
+}
+.score-bar {
+  height:100%;
+  background:linear-gradient(90deg,var(--red),var(--orange));
+  border-radius:6px; width:0;
+  transition:width 1.2s cubic-bezier(0.4,0,0.2,1) 0.4s;
+}
+
+.mix-wrap { padding: 0 22px 22px; border-top:1px solid rgba(26,26,46,.08); padding-top:18px; }
+.mix-title { font-size:10px; font-weight:700; letter-spacing:3px; color:var(--ink2); margin-bottom:12px; }
+.mix-tags { display:flex; flex-wrap:wrap; gap:8px; }
+.mix-tag {
+  display:inline-flex; align-items:center; gap:5px;
+  background:var(--bg); border:1.5px solid rgba(26,26,46,.15);
+  border-radius:20px; padding:5px 13px;
+  font-size:13px; font-weight:700; color:var(--ink2);
+}
+
+.action-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:14px; }
+
+.btn-retry {
+  background:var(--white); border:2px solid var(--ink); border-radius:50px;
+  padding:15px; font-family:'Dela Gothic One',cursive; font-size:14px;
+  letter-spacing:2px; color:var(--ink); cursor:pointer;
+  box-shadow:var(--card-shadow); transition:all .15s; text-align:center;
+}
+.btn-retry:hover { transform:translate(-2px,-2px); box-shadow:5px 5px 0 var(--ink); }
+
+.btn-share {
+  background:var(--blue); border:2px solid var(--ink); border-radius:50px;
+  padding:15px; font-family:'Dela Gothic One',cursive; font-size:14px;
+  letter-spacing:2px; color:white; cursor:pointer;
+  box-shadow:var(--card-shadow); transition:all .15s; text-align:center;
+}
+.btn-share:hover { transform:translate(-2px,-2px); box-shadow:5px 5px 0 var(--ink); background:#2260ee; }
+
+/* ===== ALL TYPES ===== */
+#screen-all { padding-top: 8px; }
+
+.back-btn {
+  display:inline-flex; align-items:center; gap:6px;
+  background:none; border:1.5px solid rgba(26,26,46,.2); border-radius:50px;
+  padding:8px 18px; font-size:13px; font-weight:700; color:var(--ink2);
+  cursor:pointer; margin-bottom:22px; transition:all .15s;
+  font-family:'Noto Sans JP',sans-serif;
+}
+.back-btn:hover { background:var(--white); border-color:var(--ink); color:var(--ink); box-shadow:var(--card-shadow); }
+
+.all-header { margin-bottom:24px; }
+.all-header h2 { font-family:'Dela Gothic One',cursive; font-size:28px; margin-bottom:4px; }
+.all-header p { font-size:13px; color:var(--ink2); }
+
+.all-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; }
+
+.type-card {
+  background:var(--white); border:2px solid var(--ink);
+  border-radius:var(--radius-sm); padding:14px 15px;
+  box-shadow:3px 3px 0 var(--ink); transition:all .15s; cursor:default;
+}
+.type-card:hover { transform:translate(-2px,-2px); box-shadow:5px 5px 0 var(--ink); }
+
+.tc-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
+.tc-icon { font-size:26px; }
+.tc-rarity { font-size:10px; color:var(--yellow); letter-spacing:1px; }
+.tc-name { font-size:13px; font-weight:900; line-height:1.3; margin-bottom:5px; }
+.tc-phrase { font-family:'Kiwi Maru',serif; font-size:11px; color:var(--ink2); border-top:1px solid rgba(26,26,46,.08); padding-top:6px; }
+
+/* footer */
+.footer-nav { text-align:center; margin-top:32px; padding-top:24px; border-top:1.5px dashed rgba(26,26,46,.12); }
+.footer-link {
+  display:inline-flex; align-items:center; gap:6px;
+  background:none; border:none; font-size:13px;
+  font-family:'Noto Sans JP',sans-serif; font-weight:700;
+  color:var(--ink2); cursor:pointer; letter-spacing:2px;
+  text-decoration:underline; text-underline-offset:4px; transition:color .15s;
+}
+.footer-link:hover { color:var(--red); }
+
+/* Toast */
+.toast {
+  position:fixed; bottom:30px; left:50%;
+  transform:translateX(-50%) translateY(80px);
+  background:var(--ink); color:var(--yellow);
+  font-weight:700; font-size:14px;
+  padding:12px 28px; border-radius:50px;
+  z-index:999; transition:transform .35s cubic-bezier(0.34,1.56,0.64,1);
+  white-space:nowrap; letter-spacing:1px;
+}
+.toast.show { transform:translateX(-50%) translateY(0); }
+
+@media (max-width:440px) {
+  .all-grid { grid-template-columns:1fr 1fr; }
+  .q-card { padding:22px 18px; }
+  .btn-start { padding:16px 36px; font-size:18px; }
+}
+</style>
+</head>
+<body>
+
+<div class="blob blob-1"></div>
+<div class="blob blob-2"></div>
+<div class="blob blob-3"></div>
+
+<div id="app">
+
+  <!-- TOP -->
+  <div id="screen-top" class="screen active">
+    <div class="top-badge">🔍 PERSONALITY QUIZ</div>
+    <h1 class="main-title">
+      <span class="line1">タクタイプ</span>
+      <span class="line2">診断</span>
+    </h1>
+    <p class="title-sub">あなたの中のタクヤを暴く</p>
+
+    <div class="char-showcase">
+      <div class="char-bubble">😤</div>
+      <div class="char-bubble">🌙</div>
+      <div class="char-bubble">🔍</div>
+      <div class="char-bubble">🐹</div>
+      <div class="char-bubble">👁️</div>
+    </div>
+
+    <div class="intro-card">
+      <p>あなたの恋愛行動には、必ず<strong>「タクヤ」</strong>が潜んでいる。<br>10問の質問で、あなたの本質的なタクヤタイプを診断します。<br>全<strong>16タイプ</strong>、さてどのタクヤが目覚めるか？</p>
+    </div>
+
+    <button class="btn-start" onclick="startQuiz()">診断スタート →</button>
+
+    <div class="type-count-row">
+      <span>📋 全10問</span>
+      <span>🎭 16タイプ</span>
+      <span>⏱ 約2分</span>
+    </div>
+
+    <div class="footer-nav">
+      <button class="footer-link" onclick="showAllTypes()">全タイプを見る →</button>
+    </div>
+  </div>
+
+  <!-- QUIZ -->
+  <div id="screen-quiz" class="screen">
+    <div class="quiz-header">
+      <div class="q-num-badge" id="q-counter">Q 01 / 10</div>
+      <div class="progress-track">
+        <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+      </div>
+    </div>
+    <div class="q-card">
+      <div class="q-num-label" id="q-num-label">QUESTION 01</div>
+      <p class="q-text-main" id="q-text"></p>
+      <p class="q-scenario" id="q-scenario"></p>
+    </div>
+    <div class="options-list" id="options-list"></div>
+  </div>
+
+  <!-- LOADING -->
+  <div id="screen-loading" class="screen">
+    <div class="dot-row">
+      <div class="ldot"></div><div class="ldot"></div><div class="ldot"></div>
+      <div class="ldot"></div><div class="ldot"></div><div class="ldot"></div>
+      <div class="ldot"></div>
+    </div>
+    <p class="load-msg">タクヤ成分を分析中…</p>
+    <p class="load-sub">ANALYZING YOUR TAKUYA DNA</p>
+  </div>
+
+  <!-- RESULT -->
+  <div id="screen-result" class="screen">
+    <div class="result-eyebrow">YOUR RESULT</div>
+    <div class="result-main-card">
+      <div class="result-card-header">
+        <img class="result-img" id="result-img" src="" alt="">
+        <div class="rarity-row">
+          <span class="rarity-pill">RARITY</span>
+          <span class="rarity-stars" id="result-stars"></span>
+        </div>
+        <div class="result-intensity" id="result-intensity"></div>
+        <div class="result-name-big" id="result-name"></div>
+      </div>
+      <div class="phrase-row">
+        <span class="phrase-lbl">口癖</span>
+        <span class="phrase-txt" id="result-phrase"></span>
+      </div>
+      <div class="desc-wrap">
+        <div class="desc-title">CHARACTER DESCRIPTION</div>
+        <p class="desc-text" id="result-desc"></p>
+      </div>
+      <div class="score-wrap">
+        <div class="score-row">
+          <span class="score-title">DOMINANT SCORE</span>
+          <span class="score-pct" id="score-pct">–%</span>
+        </div>
+        <div class="score-track"><div class="score-bar" id="score-bar"></div></div>
+      </div>
+      <div class="mix-wrap" id="mix-wrap"></div>
+    </div>
+    <div class="action-row">
+      <button class="btn-retry" onclick="retryQuiz()">もう一度</button>
+      <button class="btn-share" onclick="shareResult()">シェアする</button>
+    </div>
+    <div class="footer-nav">
+      <button class="footer-link" onclick="showAllTypes()">全タイプを見る →</button>
+    </div>
+  </div>
+
+  <!-- ALL TYPES -->
+  <div id="screen-all" class="screen">
+    <button class="back-btn" onclick="goBack()">← 戻る</button>
+    <div class="all-header">
+      <h2>全16タクヤタイプ</h2>
+      <p>あなたはどのタクヤ？</p>
+    </div>
+    <div class="all-grid" id="all-grid"></div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ==============================
+// TYPE DATA
+// ==============================
+const TYPES = {
+  wakaranai: { name:'わかんないタクヤ',      icon:'🤔', img:'wakaranai.jpg',   rarity:3, phrase:'「まだわかんない」',             desc:'関係を明確化する局面になると判断を保留し、「まだわからない」という余白に身を置こうとするタイプ。選ばれないという確定的な痛みを回避するため、曖昧さの中で可能性を延命する傾向がある。主体的に決めないことで失敗責任を背負わずに済む一方、相手からは温度の見えない存在になりやすい。恋愛においては"進まない安心"を選びがち。' },
+  udegumi:   { name:'腕組むなタクヤ',         icon:'💪', img:'udegumi.jpg',     rarity:4, phrase:'「いや違くて」',                desc:'自尊心の防衛を最優先し、好意の表明を主導権の喪失と捉えがちな対抗姿勢型。理屈や冷静さを盾にしながら感情を抑制し、優位な立場を保とうとする傾向がある。本音を見せないことで傷つくリスクを下げているが、その硬直した姿勢が親密化の機会を遠ざけることも少なくない。愛情よりも体面を守る選択を取りやすい。' },
+  poemer:    { name:'ポエマータクヤ',          icon:'🌙', img:'poemer.jpg',      rarity:3, phrase:'「あの夜は永遠だった」',       desc:'恋愛体験を叙情的な物語へと再構築する美化型。関係そのものよりも、そこから生まれる意味や象徴性を重視する傾向が強い。失恋や曖昧な関係さえも"運命の一章"として語り直すことで、未練や痛みを芸術的価値へ転換する。感情の言語化能力は高いが、現実の関係改善よりも物語の完成度を優先しやすい。' },
+  jobhopper: { name:'ジョブホッパータクヤ',   icon:'🚀', img:'jobhopper.jpg',   rarity:4, phrase:'「今フェーズ変わってて」',     desc:'現在の未完成さを「過渡期」と定義し、常に次のステージを語る可能性偏重型。恋愛においても"今は準備段階"という物語を設定し、安定や責任より未来の伸びしろを強調する傾向がある。理想像への移行を繰り返すが、足場が定まらないまま関係を築こうとするため、相手に不安定さを感じさせることも多い。' },
+  hamchan:   { name:'ハムちゃんずタクヤ',     icon:'🐹', img:'hamchan.jpg',     rarity:3, phrase:'「タクヤ傷ついちゃうよ？」', desc:'弱さや無垢さを前面に出し、守られる立場を確保しながら承認を求める甘受型。小動物的な振る舞いで攻撃性を隠すが、内面には強い比較意識や嫉妬心を抱えることもある。被害者ポジションに立つことで優位性を保とうとする側面があり、無自覚の依存と競争を同時に行う複雑なラブスタイル。' },
+  atfield:   { name:'ATフィールド解除タクヤ', icon:'⚡', img:'atfield.png',     rarity:5, phrase:'「俺さ、実は…」',            desc:'日常では感情を抑制し理性的に振る舞うが、一定の条件下で一気に自己開示する周期爆発型。抑圧と解放の振幅が大きく、急激な距離の接近を引き起こすことがある。普段の冷静さとのギャップは魅力にもなるが、相手からは情緒の読みにくい存在になりやすい。安定よりも臨界点で動く恋愛傾向。' },
+  jyurei:    { name:'呪霊タクヤ',             icon:'👁️', img:'jyurei.jpg',      rarity:5, phrase:'「ふーん」',                  desc:'選ばれなかった経験を強く内在化し、比較や観察を通して静かな嫉妬を蓄積する執着型。表面上は平静を装うが、他者の幸福や優位に敏感に反応する。直接的な攻撃性は低いものの、重たい空気や圧力として関係に影響を与えることがある。恋愛を"証明の場"として再挑戦し続ける傾向。' },
+  unko:      { name:'うんこタクヤ',           icon:'💩', img:'unko.png',        rarity:4, phrase:'「どうせ俺はうんこ」',        desc:'自己卑下を先回りで提示することで拒絶リスクを下げようとする防御型。自分を下げる発言を繰り返すが、その根底には強い承認欲求がある。同情や安心感を引き出す一方、過度な自己否定が関係の重さにつながることも。否定的自己像を利用しつつ、本当は評価を切望している二層構造タイプ。' },
+  mutation:  { name:'突然変異タクヤ',         icon:'🧬', img:'mutation.jpg',    rarity:5, phrase:'「俺こんなんだっけ？」',      desc:'特定の恋愛対象が出現した瞬間に人格特性が急激に変化する適応暴走型。普段は理性的でも、恋愛下では価値観・生活リズム・言動まで書き換わる。環境適応能力は高いが、自己同一性が不安定になりやすい。相手に最適化し続けた結果、「本来の自分」が希薄化する危険も孕む。恋は進化でもあり、変異でもあると体現するタイプ。' },
+  shoninbaku:{ name:'承認爆食タクヤ',         icon:'📱', img:'shoninbaku.jpg',  rarity:4, phrase:'「今なんか冷たくない？」',    desc:'好意・賞賛・リアクションを栄養源として機能する外部依存型。返信速度や既読タイミングに強く影響され、評価の揺らぎがそのまま自己価値の揺れへ直結する。愛情そのものより"愛されている証拠"を重視する傾向があり、関係の温度管理に神経を消耗する。承認が止まると急速に不安定化する。' },
+  risou:     { name:'理想過積載タクヤ',       icon:'🏔️', img:'risou.jpg',       rarity:3, phrase:'「なんか違ったかも」',        desc:'恋愛対象に過剰な理想像を投影する期待肥大型。相手の実像よりも、自分が望む物語構造を優先しやすい。初期段階では熱量が高いが、現実との誤差が顕在化すると急激に熱が冷める。理想を抱く能力は高いが、等身大の関係を維持する持久力に課題がある。恋を"完成図"で見がち。' },
+  hikaku:    { name:'比較無限ループタクヤ',   icon:'🔄', img:'hikaku.jpg',      rarity:4, phrase:'「あいつには勝ってるよな？」',desc:'他者との比較を通じて自己位置を測定し続ける相対評価型。恋愛は競争構造の一種として認識されやすく、「あいつより上か下か」で自尊心が変動する。嫉妬を原動力に努力する面もあるが、安心できる時間が短い。常に誰かの存在を参照し続けるため、純粋な没入が難しい。' },
+  mirai:     { name:'未来語りすぎタクヤ',     icon:'🔭', img:'mirai.jpg',       rarity:3, phrase:'「将来さ…」',                desc:'関係初期から将来像を語り、物語を加速させる前倒し構築型。現実の積み重ねよりも"到達予定地点"を提示することで安心を得る。ビジョン提示力は高いが、現在の感情確認が疎かになりやすい。未来の保証を語るほど、足元の不安が透ける二重構造を持つ。' },
+  kidoku:    { name:'既読哲学タクヤ',         icon:'🔬', img:'kidoku.jpg',      rarity:4, phrase:'「3分空いたのは何？」',       desc:'メッセージの既読・未読・間隔を意味論的に解析する過剰解釈型。テキスト上の微差を感情指標として扱い、そこから関係性の推移を推測する。洞察力は鋭いが、解釈の暴走が不安を増幅させることも多い。恋愛を"データ解析対象"として扱う知性派不安型。' },
+  jikokei:   { name:'自己啓発覚醒タクヤ',     icon:'🔥', img:'jikokei.png',     rarity:2, phrase:'「俺、変わるわ」',            desc:'失恋や拒絶を契機に急激な自己改革へ走る再構築型。筋トレ・読書・副業など可視化可能な成長へ集中し、感情の痛みを成果へ変換する。行動力は高いが、内面的な処理が追いつかない場合、再び同様の構図を繰り返す傾向もある。恋愛を自己鍛錬のトリガーとするタイプ。' },
+  mutteki:   { name:'無敵モード宣言タクヤ',   icon:'🛡️', img:'mutteki.jpg',     rarity:3, phrase:'「別にもういいし」',          desc:'「もう何も期待しない」という宣言により心理的優位を確保しようとする撤退偽装型。無関心を装うが、実際には依然として強い渇望を内在している。期待を下げることで傷を最小化するが、同時に可能性も狭めてしまう。達観と諦観の境界線を歩く防衛的ラブタイプ。' }
+};
+
+// ==============================
+// QUESTIONS
+// ==============================
+const ALL_QUESTIONS = [
+  {
+    text: '好きな人から3時間返信がない。どうする？',
+    scenario: '既読もつかない。この3時間、どう過ごす？',
+    options: [
+      { text:'「この3時間に絶対意味がある」と解析を始める', type:'kidoku' },
+      { text:'「別に気にしてないし」と自分に言い聞かせる', type:'mutteki' },
+      { text:'「俺のこと嫌いになった？」と不安でいっぱい', type:'shoninbaku' },
+      { text:'溜め込んで、ある日突然全部吐き出す', type:'atfield' }
+    ]
+  },
+  {
+    text: '失恋した翌朝、最初にすること',
+    scenario: '振られた翌日の朝、目が覚めた。あなたは？',
+    options: [
+      { text:'SNSに詩的な文章を投稿する', type:'poemer' },
+      { text:'「俺、変わるわ」とジムに入会する', type:'jikokei' },
+      { text:'相手のInstagramをひたすらチェックする', type:'jyurei' },
+      { text:'「どうせ俺なんて…」と自己卑下する', type:'unko' }
+    ]
+  },
+  {
+    text: '突然「好きです」と言われた。正直な反応は？',
+    scenario: '予期せず告白された瞬間',
+    options: [
+      { text:'なぜか素直に喜べず、冷静に理屈をこねる', type:'udegumi' },
+      { text:'「これは運命の出会いだ」と感じる', type:'poemer' },
+      { text:'すぐに頭の中で相手の理想像を作り始める', type:'risou' },
+      { text:'「主導権を取られた」と感じてしまう', type:'udegumi' }
+    ]
+  },
+  {
+    text: '恋愛中のあなたを一言で表すと？',
+    scenario: '親しい友人に聞かれたとき',
+    options: [
+      { text:'相手の趣味・口調・リズムまで染まっていく', type:'mutation' },
+      { text:'デートで自然と2〜3年後の話をしてる', type:'mirai' },
+      { text:'「あの人より俺の方がいいよな」と比べてる', type:'hikaku' },
+      { text:'LINEの返信速度に一喜一憂している', type:'shoninbaku' }
+    ]
+  },
+  {
+    text: '恋愛で一番大事にしていること',
+    scenario: 'あなたが無意識に優先しているもの',
+    options: [
+      { text:'「好き」という証拠・証明を集めること', type:'shoninbaku' },
+      { text:'この関係が持つ"意味"や"物語"としての価値', type:'poemer' },
+      { text:'周りの誰より自分がうまくいっていること', type:'hikaku' },
+      { text:'「今は準備期間」、もっと良くなってから動く', type:'jobhopper' }
+    ]
+  },
+  {
+    text: '落ち込んでいるとき、好きな人の前でどう振る舞う？',
+    scenario: '精神的にしんどい時期に会う場面',
+    options: [
+      { text:'「ちょっと傷ついてるんだよね…」と弱さを見せる', type:'hamchan' },
+      { text:'普通にしてたのに急に「俺さ、実は…」と深い話', type:'atfield' },
+      { text:'「俺こんなんだっけ？」と自分を見失っている', type:'mutation' },
+      { text:'「どうせ俺はそういうやつだから」と自虐する', type:'unko' }
+    ]
+  },
+  {
+    text: '好きな人が別の異性と楽しそう。どう反応する？',
+    scenario: 'SNSでその場面を発見してしまった',
+    options: [
+      { text:'「ふーん」と呟きながら画面を閉じる', type:'jyurei' },
+      { text:'「あいつより俺の方が勝ってる」と確認作業', type:'hikaku' },
+      { text:'「別にもういいし」と強がる', type:'mutteki' },
+      { text:'何も言わないが、内心ずっとモヤモヤしている', type:'jyurei' }
+    ]
+  },
+  {
+    text: '「そろそろ関係をはっきりさせよう」と言われた',
+    scenario: '好きな人に詰められた状況',
+    options: [
+      { text:'「いや違くて、そういう話じゃなくて」と論点をずらす', type:'udegumi' },
+      { text:'「今ちょうどフェーズ変わってて」と先送り', type:'jobhopper' },
+      { text:'「将来的には…」と未来の話にすり替える', type:'mirai' },
+      { text:'「俺がもっとちゃんとしてれば」と自虐する', type:'unko' }
+    ]
+  },
+  {
+    text: '過去の自分の恋愛パターン、どれに近い？',
+    scenario: '過去の恋愛を振り返って',
+    options: [
+      { text:'感情を溜め込んで臨界点で一気に自己開示する', type:'atfield' },
+      { text:'好きな人に合わせて自分の全てが変わっていく', type:'mutation' },
+      { text:'LINEの既読・間隔・文体を全力で解析している', type:'kidoku' },
+      { text:'「あの頃の二人は特別だった」と語り続ける', type:'poemer' }
+    ]
+  },
+  {
+    text: '理想の自分のイメージに近いのは？',
+    scenario: '恋愛における「なりたい自分像」',
+    options: [
+      { text:'誰かに守ってもらえる、愛される小動物的な存在', type:'hamchan' },
+      { text:'失恋を乗り越えて劇的に成長した男', type:'jikokei' },
+      { text:'超然として、何も期待せずに生きている人', type:'mutteki' },
+      { text:'誰よりもその人のことをわかっている存在', type:'jyurei' }
+    ]
+  }
+];
+
+// ==============================
+// STATE
+// ==============================
+let currentQ = 0;
+let shuffledQs = [];
+let scores = {};
+let prevScreen = 'screen-top';
+
+function resetScores() {
+  Object.keys(TYPES).forEach(k => scores[k] = 0);
+}
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+// ==============================
+// SCREEN
+// ==============================
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const el = document.getElementById(id);
+  el.classList.remove('active');
+  void el.offsetWidth;
+  el.classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ==============================
+// QUIZ
+// ==============================
+function startQuiz() {
+  resetScores();
+  currentQ = 0;
+  shuffledQs = shuffle(ALL_QUESTIONS);
+  showScreen('screen-quiz');
+  renderQ();
+}
+
+function renderQ() {
+  const q = shuffledQs[currentQ];
+  const n = currentQ + 1;
+  const total = shuffledQs.length;
+  const labels = ['A', 'B', 'C', 'D', 'E'];
+
+  document.getElementById('q-counter').textContent = `Q ${String(n).padStart(2,'0')} / ${total}`;
+  document.getElementById('q-num-label').textContent = `QUESTION ${String(n).padStart(2,'0')}`;
+  document.getElementById('progress-fill').style.width = `${((n-1) / total) * 100}%`;
+  document.getElementById('q-text').textContent = q.text;
+  document.getElementById('q-scenario').textContent = q.scenario;
+
+  const list = document.getElementById('options-list');
+  list.innerHTML = '';
+
+  // Shuffle A-D options, then append E
+  const shuffledOpts = shuffle(q.options);
+  const allOpts = [
+    ...shuffledOpts,
+    { text: 'わかんない…', type: 'wakaranai', isE: true }
+  ];
+
+  allOpts.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn' + (opt.isE ? ' opt-e' : '');
+    btn.innerHTML = `<span class="opt-tag">${labels[i]}</span><span class="opt-text">${opt.text}</span>`;
+    btn.addEventListener('click', () => choose(btn, opt.type));
+    list.appendChild(btn);
+  });
+}
+
+function choose(btn, type) {
+  document.querySelectorAll('.option-btn').forEach(b => b.style.pointerEvents = 'none');
+  btn.classList.add('selected');
+  scores[type] = (scores[type] || 0) + 1;
+  setTimeout(() => {
+    currentQ++;
+    if (currentQ < shuffledQs.length) {
+      showScreen('screen-quiz');
+      renderQ();
+    } else {
+      showScreen('screen-loading');
+      setTimeout(showResult, 2000);
+    }
+  }, 400);
+}
+
+// ==============================
+// RESULT
+// ==============================
+function showResult() {
+  const sorted = Object.entries(scores).sort((a,b) => b[1]-a[1]);
+  const [topKey, topScore] = sorted[0];
+  const t = TYPES[topKey];
+  const total = shuffledQs.length;
+
+  const imgEl = document.getElementById('result-img');
+  imgEl.src = 'images/' + t.img;
+  imgEl.alt = t.name;
+  imgEl.style.transform = 'scale(0)';
+  void imgEl.offsetWidth;
+  imgEl.style.animation = 'none';
+  void imgEl.offsetWidth;
+  imgEl.style.animation = '';
+
+  const starsEl = document.getElementById('result-stars');
+  starsEl.innerHTML = '';
+  for (let i = 1; i <= 5; i++) {
+    const s = document.createElement('span');
+    s.className = i <= t.rarity ? 's1' : 's0';
+    s.textContent = '★';
+    starsEl.appendChild(s);
+  }
+
+  const intensity = topScore >= 4 ? '完全に' : topScore >= 3 ? 'かなり' : topScore >= 2 ? 'どちらかといえば' : 'ちょっぴり';
+  document.getElementById('result-intensity').textContent = intensity;
+  document.getElementById('result-name').textContent = t.name;
+  document.getElementById('result-phrase').textContent = t.phrase;
+  document.getElementById('result-desc').textContent = t.desc;
+
+  const pct = Math.round((topScore / total) * 100);
+  document.getElementById('score-pct').textContent = `${pct}%`;
+
+  showScreen('screen-result');
+  setTimeout(() => {
+    document.getElementById('score-bar').style.width = Math.max(pct, 15) + '%';
+  }, 100);
+
+  const runners = sorted.slice(1,4).filter(([,v]) => v > 0);
+  const mixEl = document.getElementById('mix-wrap');
+  if (runners.length) {
+    mixEl.innerHTML = `
+      <div class="mix-title">MIX IN YOUR DNA</div>
+      <div class="mix-tags">${runners.map(([k]) => `<span class="mix-tag">${TYPES[k].icon} ${TYPES[k].name}</span>`).join('')}</div>
+    `;
+  } else {
+    mixEl.innerHTML = '';
+  }
+}
+
+// ==============================
+// ALL TYPES
+// ==============================
+function showAllTypes() {
+  prevScreen = document.querySelector('.screen.active').id;
+  document.getElementById('all-grid').innerHTML = Object.entries(TYPES).map(([,t]) => `
+    <div class="type-card">
+      <div class="tc-top">
+        <span class="tc-icon">${t.icon}</span>
+        <span class="tc-rarity">${'★'.repeat(t.rarity)}${'☆'.repeat(5-t.rarity)}</span>
+      </div>
+      <div class="tc-name">${t.name}</div>
+      <div class="tc-phrase">${t.phrase}</div>
+    </div>
+  `).join('');
+  showScreen('screen-all');
+}
+
+function goBack() { showScreen(prevScreen); }
+function retryQuiz() { startQuiz(); }
+
+function shareResult() {
+  const sorted = Object.entries(scores).sort((a,b) => b[1]-a[1]);
+  const t = TYPES[sorted[0][0]];
+  const text = `【タクタイプ診断】\n私は「${t.name}」でした！\n口癖：${t.phrase}\n\n#タクタイプ診断`;
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(() => showToast('結果をコピーしました！'));
+  } else {
+    showToast('コピーできませんでした');
+  }
+}
+
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2500);
+}
+</script>
+</body>
+</html>
